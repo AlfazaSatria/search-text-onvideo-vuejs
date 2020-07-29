@@ -2,16 +2,16 @@
 <html lang="en">
 
 <head>
-    <main id="app">
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{{title}}</title>
-        <link rel="stylesheet" href="app.css">
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css"
-            integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}}</title>
+    <link rel="stylesheet" href="/app.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css" integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
 </head>
 
 <body>
+    <div id="app">
     <div class="container mt-4">
         <h1 class="blue font-weight-bold">{{title}}</h1>
         <hr><br>
@@ -28,30 +28,38 @@
                     <button class="clear btn button btn-danger" @click="clear">Clear</button>
                 </div>
             </div>
-            
         </div>
+        <h3 class="text-center mt-4">Result</h3>
+        <div>Amount: {{pagination.total}}</div>
+        <div>Page to :{{pagination.page}}</div>
+        <ul>
+            <li v-for="(list, i) in result" :key="i">
+                <span v-html="list.text"></span>
+                <a :href="`${url}&t=${list.start}s`" target="_blank">Youtube</a>
+            </li>
+        </ul>
     </div>
+</div>
 </body>
-</main>
+
 
 </html>
 <style>
-    .blue {
+    .green {
         color: #41B883;
     }
-
-    .line {}
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-<script src="app.js"></script>
+<script src="/app.js"></script>
+
 <script>
     new Vue({
         el: '#app',
         data: {
             title: 'S E A R V I D',
             header: 'Looking for Words in The Video',
-            url:'',
+            url: '',
             keyword: '',
             result: [],
             pagination: {
@@ -63,53 +71,59 @@
                 page: null
             }
         },
-        watch:{
-            keyword: pDebounce(async function handleKeyword(keyword){
-                if(keyword && keyword.length>=3){
+        computed: {
+            tobeString() {
+                return value => JSON.stringify(value, null, 2)
+            }
+        },
+        watch: {
+            keyword: pDebounce(async function handleKeyword(keyword) {
+                if (keyword && keyword.length >= 3) {
                     await this.search(keyword, this.url)
-                }else{
+                } else {
                     this.clearResult()
                 }
             }, 250)
         },
-        methods:{
-            async search(keyword, url, pagination){
-                try{
+        methods: {
+            async search(keyword, url, pagination) {
+                try {
                     const response = await fetch(
                         pagination
-                        ? pagination
-                        : `https://cari-teks-video-api.vercel.app/api/search?q=${keyword}&url=${encodeURIComponent(
-                      url
-                    )}`
+                            ? pagination
+                            : `https://cari-teks-video-api.vercel.app/api/search?q=${keyword}&url=${encodeURIComponent(
+                                url
+                            )}`
                     ).then(_ => (_.ok ? _.json() : []))
 
                     this.result = respon.data
                     Object.keys(response).forEach(key => {
-                        if(key !== 'data'){
-                            this.pagination[key]= response[key]
+                        if (key !== 'data') {
+                            this.pagination[key] = response[key]
                         }
                     })
-                } catch (error){}
+                } catch (error) { }
             },
-            async navigation(type){
-                if(!this.pagination[type]){
+            async navigation(type) {
+                if (!this.pagination[type]) {
                     return
                 }
-                await this.search(this.keyword, this.url , this.pagination[type])
+                await this.search(this.keyword, this.url, this.pagination[type])
             },
-            clear(){
-                this.keyword=''
+            clear() {
+                this.url = ''
+                this.keyword = ''
                 this.clearResult()
             },
-            clearResult(){
-                this.result=[]
-                this.pagination={
-                    first:null,
-                    last:null,
-                    prev:null,
-                    next:null,
-                    total:0,
-                    page:null
+            clearResult() {
+                this.result = []
+                this.pagination = {
+                    first: null,
+                    last: null,
+                    prev: null,
+                    next: null,
+                    total: 0,
+                    page: null
                 }
             }
         }
