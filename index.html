@@ -2,34 +2,94 @@
 <html lang="en">
 
 <head>
-<main id="app">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{title}}</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css" integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
+    <main id="app">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{{title}}</title>
+        <link rel="stylesheet" href="app.css">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css"
+            integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
 </head>
 
 <body>
-
+    <div class="container mt-4">
+        <h1 class="blue font-weight-bold">{{title}}</h1>
+        <hr><br>
+        <h1 class="text-center font-weight-bold mt-4">{{header}}</h1>
+        <div class="mt-4 text-center">
+            <div class="row">
+                <div class="col-md-5">
+                    <input type="text" class="url form-control" v-model="url">
+                </div>
+                <div class="col-md-5">
+                    <input type="text" class="keyword form-control" v-model="keyword">
+                </div>
+                <div class="col-md-2">
+                    <button class="clear btn button btn-danger" @click="clear">Clear</button>
+                </div>
+            </div>
+            
+        </div>
+    </div>
 </body>
 </main>
 
 </html>
+<style>
+    .blue {
+        color: #41B883;
+    }
+
+    .line {}
+</style>
+
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="app.js"></script>
 <script>
     new Vue({
         el: '#app',
         data: {
-        title:'SvideoS',
-        keyword:'',
-        result:[],
-        pagination:{
-            first:null,
-            last:null,
-            prev:null,
-            next:null,
-            total:0,
-            page:null
+            title: 'S E A R V I D',
+            header: 'Looking for Words in The Video',
+            url:'',
+            keyword: '',
+            result: [],
+            pagination: {
+                first: null,
+                last: null,
+                prev: null,
+                next: null,
+                total: 0,
+                page: null
+            }
+        },
+        watch:{
+            keyword: pDebounce(async function handleKeyword(keyword){
+                if(keyword && keyword.length>=3){
+                    await this.search(keyword, this.url)
+                }else{
+                    this.clearResult()
+                }
+            }, 250)
+        },
+        methods:{
+            async search(keyword, url, pagination){
+                try{
+                    const response = await fetch(
+                        pagination
+                        ? pagination
+                        : `https://cari-teks-video-api.vercel.app/api/search?q=${keyword}&url=${encodeURIComponent(
+                      url
+                    )}`
+                    ).then(_ => (_.ok ? _.json() : []))
+
+                    this.result = respon.data
+                    Object.keys(response).forEach(key => {
+                        if(key !== 'data'){
+                            this.pagination[key]= response[key]
+                        }
+                    })
+                } catch (error){}
             }
         }
     })
