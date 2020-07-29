@@ -90,6 +90,27 @@
                         }
                     })
                 } catch (error){}
+            },
+            async navigation(type){
+                if(!this.pagination[type]){
+                    return
+                }
+                await this.search(this.keyword, this.url , this.pagination[type])
+            },
+            clear(){
+                this.keyword=''
+                this.clearResult()
+            },
+            clearResult(){
+                this.result=[]
+                this.pagination={
+                    first:null,
+                    last:null,
+                    prev:null,
+                    next:null,
+                    total:0,
+                    page:null
+                }
             }
         }
     })
