@@ -28,16 +28,34 @@
                     <button class="clear btn button btn-danger" @click="clear">Clear</button>
                 </div>
             </div>
+            <br>
+            <div class="row">
+                <div class="col-md-3">
+                    <button class="btn btn-primary btn-block" @click="navigation('first')" :disabled="!pagination['first']">First</button>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-primary btn-block" @click="navigation('prev')" :disabled="!pagination['prev']">Previous</button>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-primary btn-block" @click="navigation('next')" :disabled="!pagination['next']">Next</button>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-primary btn-block" @click="navigation('last')" :disabled="!pagination['last']">Last</button>
+                </div>
+            </div>
         </div>
         <h3 class="text-center mt-4">Result</h3>
-        <div>Amount: {{pagination.total}}</div>
-        <div>Page to :{{pagination.page}}</div>
+        <div>Amount: {{ pagination.total }}</div>
+        <div>Page to :{{ pagination.page }}</div>
         <ul>
             <li v-for="(list, i) in result" :key="i">
                 <span v-html="list.text"></span>
                 <a :href="`${url}&t=${list.start}s`" target="_blank">Youtube</a>
             </li>
         </ul>
+        <div class="mt-4">
+            <p>{{tobeString(result)}}</p>
+        </div>
     </div>
 </div>
 </body>
