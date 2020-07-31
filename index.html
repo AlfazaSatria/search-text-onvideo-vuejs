@@ -2,85 +2,155 @@
 <html lang="en">
 
 <head>
-
+  
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{title}}</title>
+    <title>SEARVID</title>
     <link rel="stylesheet" href="/app.css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css" integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
 </head>
 
 <body>
-    <div id="app">
+    <main id="app">
     <div class="container mt-4">
-        <h1 class="blue font-weight-bold">{{title}}</h1>
+        <h1 class="green font-weight-bold">{{title}}</h1>
         <hr><br>
         <h1 class="text-center font-weight-bold mt-4">{{header}}</h1>
         <div class="mt-4 text-center">
             <div class="row">
                 <div class="col-md-5">
-                    <input type="text" class="url form-control" v-model="url">
+                    <input type="text" class="url form-control" v-model="url" placeholder="your link video e.g (www.youtube.com)">
                 </div>
                 <div class="col-md-5">
-                    <input type="text" class="keyword form-control" v-model="keyword">
+                    <input type="text" class="keyword form-control" v-model="keyword" placeholder="Input keyword e.g (Vue)">
                 </div>
                 <div class="col-md-2">
-                    <button class="clear btn button btn-danger" @click="clear">Clear</button>
+                    <button class="clear btn button btn-danger btn-block" @click="clear"><i class="fas fa-trash-alt"></i> Clear</button>
                 </div>
             </div>
             <br>
             <div class="row">
                 <div class="col-md-3">
-                    <button class="btn btn-primary btn-block" @click="navigation('first')" :disabled="!pagination['first']">First</button>
+                    <button class="btn bg-green btn-block text-dark font-weight-bold" @click="navigation('first')" :disabled="!pagination['first']">First page</button>
                 </div>
                 <div class="col-md-3">
-                    <button class="btn btn-primary btn-block" @click="navigation('prev')" :disabled="!pagination['prev']">Previous</button>
+                    <button class="btn bg-green btn-block text-dark font-weight-bold" @click="navigation('prev')" :disabled="!pagination['prev']"><i class="fas fa-arrow-circle-left"></i> Previous</button>
                 </div>
                 <div class="col-md-3">
-                    <button class="btn btn-primary btn-block" @click="navigation('next')" :disabled="!pagination['next']">Next</button>
+                    <button class="btn bg-green btn-block text-dark font-weight-bold" @click="navigation('next')" :disabled="!pagination['next']">Next <i class="fas fa-arrow-circle-right"></i></button>
                 </div>
                 <div class="col-md-3">
-                    <button class="btn btn-primary btn-block" @click="navigation('last')" :disabled="!pagination['last']">Last</button>
+                    <button class="btn bg-green btn-block text-dark font-weight-bold" @click="navigation('last')" :disabled="!pagination['last']">Last page</button>
                 </div>
             </div>
         </div>
+        <br>
         <h3 class="text-center mt-4">Result</h3>
-        <div>Amount: {{ pagination.total }}</div>
-        <div>Page to :{{ pagination.page }}</div>
-        <ul>
-            <li v-for="(list, i) in result" :key="i">
-                <span v-html="list.text"></span>
-                <a :href="`${url}&t=${list.start}s`" target="_blank">Youtube</a>
-            </li>
-        </ul>
-        <div class="mt-4">
-            <p>{{tobeString(result)}}</p>
+        <hr>
+        <div class="row">
+            <div class="col-md-6">
+               <h4 class="text-center">Amount: {{ pagination.total }}</h4>
+            </div>
+            <div class="col-md-6">
+               <h4 class="text-center">Page to :{{ pagination.page }}</h4>
+            </div>
         </div>
+        <table class="table table-light">
+            <tbody>
+                <tr>
+                    <td class="text-center">Keyword</td>
+                    <td class="text-center">Link</td>
+                </tr>
+                <tr v-for="(list, i) in result" :key="i">
+                    <td v-html="list.text"></td>
+                    <td :href="`${url}&t=${list.start}s`" target="_blank">Youtube</td>
+                    
+                </tr>
+            </tbody>
+        </table>
     </div>
-</div>
+</main>
 </body>
 
 
 </html>
+
+
 <style>
     .green {
         color: #41B883;
     }
+
+    .bg-green{
+        background-color: #41B883;
+    }
 </style>
 
+
+<script src="https://kit.fontawesome.com/55a02026d1.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 <script src="/app.js"></script>
 
 <script>
     new Vue({
-        el: '#app',
-        data: {
-            title: 'S E A R V I D',
-            header: 'Looking for Words in The Video',
-            url: '',
-            keyword: '',
-            result: [],
-            pagination: {
+    el: '#app',
+    data: {
+        title: 'S E A R V I D',
+        header: 'Looking for Words in The Video',
+        url: '',
+        keyword: '',
+        result: [],
+        pagination: {
+            first: null,
+            last: null,
+            prev: null,
+            next: null,
+            total: 0,
+            page: null
+        }
+    },
+    watch: {
+        keyword: pDebounce(async function handleKeyword(keyword) {
+            if (keyword && keyword.length >= 3) {
+                await this.search(keyword, this.url)
+            } else {
+                this.clearResult()
+            }
+        }, 250)
+    },
+    methods: {
+        async search(keyword, url, pagination) {
+            try {
+                const response = await fetch(
+                    pagination
+                        ? pagination
+                        : `https://cari-teks-video-api.vercel.app/api/search?q=${keyword}&url=${encodeURIComponent(
+                            url
+                        )}`
+                ).then(_ => (_.ok ? _.json() : []))
+
+                this.result = response.data
+                Object.keys(response).forEach(key => {
+                    if (key !== 'data') {
+                        this.pagination[key] = response[key]
+                    }
+                })
+            } catch (error) { }
+        },
+        async navigation(type) {
+            if (!this.pagination[type]) {
+                return
+            }
+            await this.search(this.keyword, this.url, this.pagination[type])
+        },
+        clear() {
+            this.url = ''
+            this.keyword = ''
+            this.clearResult()
+        },
+        clearResult() {
+            this.result = []
+            this.pagination = {
                 first: null,
                 last: null,
                 prev: null,
@@ -88,62 +158,7 @@
                 total: 0,
                 page: null
             }
-        },
-        computed: {
-            tobeString() {
-                return value => JSON.stringify(value, null, 2)
-            }
-        },
-        watch: {
-            keyword: pDebounce(async function handleKeyword(keyword) {
-                if (keyword && keyword.length >= 3) {
-                    await this.search(keyword, this.url)
-                } else {
-                    this.clearResult()
-                }
-            }, 250)
-        },
-        methods: {
-            async search(keyword, url, pagination) {
-                try {
-                    const response = await fetch(
-                        pagination
-                            ? pagination
-                            : `https://cari-teks-video-api.vercel.app/api/search?q=${keyword}&url=${encodeURIComponent(
-                                url
-                            )}`
-                    ).then(_ => (_.ok ? _.json() : []))
-
-                    this.result = respon.data
-                    Object.keys(response).forEach(key => {
-                        if (key !== 'data') {
-                            this.pagination[key] = response[key]
-                        }
-                    })
-                } catch (error) { }
-            },
-            async navigation(type) {
-                if (!this.pagination[type]) {
-                    return
-                }
-                await this.search(this.keyword, this.url, this.pagination[type])
-            },
-            clear() {
-                this.url = ''
-                this.keyword = ''
-                this.clearResult()
-            },
-            clearResult() {
-                this.result = []
-                this.pagination = {
-                    first: null,
-                    last: null,
-                    prev: null,
-                    next: null,
-                    total: 0,
-                    page: null
-                }
-            }
         }
-    })
+    }
+})
 </script>
